@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2013 Antonio Candela
-#
-# Author: Antonio Candela <candela.antonio@gmail.com>
+# Author: Antonio Candela
 # AKA: Delinet <twitter.com/delinet>
 # Web Site: www.snacktech.it
 # License: MIT License
