@@ -25,11 +25,18 @@ import base64 # use it to generate Nonce
 import time # use it to generate timestamp and random key(s)
 import urllib # use it to make request
 
+# library import to make HMAC-SHA1 encode
+from hashlib import sha1
+import hmac
+import binascii
+
 class DeliTweet():
    def __init__(self):
       """
       init function: set default istance variables
-      DST variable: conteiner for the header string
+      DST variable: container for the header string
+      oauth_version: set @1.0 as default value - for more information about version number
+      read Twitter API Documentation
       """
       self.oauth_consumer_key = ""
       self.oauth_nonce = ""
@@ -54,8 +61,15 @@ class DeliTweet():
       setOauthConsumerSecret: set default istance variables oauth_consumer_secret
       parameter type: string
       """
-      self.oauth_consumer_secret = oauth_consumer_secret   
+      self.oauth_consumer_secret = oauth_consumer_secret 
 
+   def setOauthToken(self,oauth_token):
+      """
+      setOauthToken: set default istance variables oauth_token
+      parameter type: string
+      """
+      self.oauth_token = oauth_token 
+  
    def getOauthTimestamp(self):
       """
       setOauthTimestamp: set and get value of the istance variable oauth_timestamp
@@ -78,22 +92,22 @@ class DeliTweet():
       ps['oauth_nonce'] = self.percent_encode(self.oauth_nonce)
       ps['oauth_signature_method'] = self.oauth_signature_method
       ps['oauth_timestamp'] = self.percent_encode(self.oauth_timestamp)
-      ps['oauth_toke'] = self.percent_encode(self.oauth_token)
-      ps['oauth_versione'] = self.oauth_version
+      ps['oauth_token'] = self.percent_encode(self.oauth_token)
+      ps['oauth_version'] = self.oauth_version
       
       # start - read parameters_to_set. Percent encode key,value and add value(s) to the ps dict
-      for key,value in parameters_to_set:
-         ps[key] = value
-      
+      for key in parameters_to_set:
+         ps[key] = self.percent_encode(parameters_to_set[key])
+
       # start - sort and read ps dict. Create the bss string 
       for key in sorted(ps.iterkeys()):
          self.bss += key
          self.bss += ps[key]
          self.bss += '&'
       
-      self.bss = self.bss[-1]
+      self.bss = self.bss[:-1]
       
-   def setSignatureBaseString(self,method,apiurl_request,request_parameters):
+   def getSignatureBaseString(self,method,apiurl_request):
       sbs = '' #signature base string
       method = method.upper()
       sbs += method
@@ -101,7 +115,8 @@ class DeliTweet():
       apiurl_request = self.percent_encode(apiurl_request)
       sbs += apiurl_request
       sbs += '&'
-      
+      sbs += self.bss
+      return sbs
    
    def getNonce(self):
       """
@@ -120,6 +135,20 @@ class DeliTweet():
       self.oauth_nonce = base64.b64encode(rks) 
       return self.oauth_nonce
    
+   def getSigningKey(self):
+      sk = ""
+      sk += self.percent_encode(self.oauth_consumer_secret)
+      sk += '&'
+      sk += self.percent_encode(self.oauth_token)
+      return sk
+   
+   def getSignature(self,sbs):
+      key = self.getSigningKey()
+      raw = sbs
+      hashed = hmac.new(key, raw, sha1)
+      return binascii.b2a_base64(hashed.digest())[:-1]
+    
+   
    def percent_encode(self,parToEncode):
       """
       percent_encode: class module to encode [parToEncode]
@@ -128,17 +157,36 @@ class DeliTweet():
       valueEncoded = parToEncode.encode('utf8') #unicode encode
       valueEncoded = urllib.quote(valueEncoded, '')
       return valueEncoded
+   
+   def demoRequest(self):
+      self.bss = ""
+      method = "post"
+      apiurl_request = "https://api.twitter.com/1/statuses/update.json"
+      parameters_to_set = {'status':'Hello Ladies + Gentlemen, a signed OAuth request!'}
 
+      timestamp = self.getOauthTimestamp()
+      nonce = self.getNonce()
+      self.setRequestParameters('true', parameters_to_set)
+      sbs = self.getSignatureBaseString(method, apiurl_request)
+      
+      print self.getSignature(sbs)
+      
 def main():
    dt = DeliTweet()
-   dt.setOauthConsumerKey('')
-   dt.setOauthConsumerSecret('')
+   dt.setOauthConsumerKey('xvz1evFS4wEEPTGEFPHBog')
+   dt.setOauthConsumerSecret('kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw')
+   dt.setOauthToken('LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE')
    
    
    
-   value = 'tnnArxj06cWHq44gCs1OSKk/jLY='
-   print dt.percent_encode(value)
-   print dt.getNonce()
+   
+   #value = 'tnnArxj06cWHq44gCs1OSKk/jLY='
+   #print dt.percent_encode(value)
+   #print dt.getNonce()
+   
+   dt.demoRequest()
+   
+  
 
 if __name__ == '__main__':
    main()
