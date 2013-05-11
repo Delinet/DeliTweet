@@ -89,8 +89,8 @@ class DeliTweet():
          self.bss += key
          self.bss += ps[key]
          self.bss += '&'
-      if self.bss[len(self.bss)-1] == '&':
-         self.bss = self.bss[-1]
+      
+      self.bss = self.bss[-1]
       
    def setSignatureBaseString(self,method,apiurl_request,request_parameters):
       sbs = '' #signature base string
