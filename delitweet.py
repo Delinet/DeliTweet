@@ -66,7 +66,8 @@ class DeliTweet():
    
    def setRequestParameters(self,include_entities_value,parameters_to_set):
       """
-      setRequestParameters: set parameters string to use with request API
+      setRequestParameters: set parameters string to use with request API + method of the
+      request -> Get or Post
       parameters_to_set: a dictionary (key,value) link to the specific API. 
       Example: https://api.twitter.com/1.1/statuses/user_timeline.json
       parameter_to_set => user_id: value, count: value and so on
